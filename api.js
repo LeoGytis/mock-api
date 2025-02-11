@@ -2,13 +2,65 @@ const express = require("express");
 const { faker } = require("@faker-js/faker");
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
+const cors = require("cors");
+const http = require("http");
+const WebSocket = require("ws");
 
 const app = express();
 const port = 3000;
+const wsPort = 3003;
 
+// Create server and attach WebSocket
+const wss = new WebSocket.Server({ port: wsPort });
+
+// Enable CORS for all origins
+app.use(cors());
 app.use(express.json());
 
 const players = [];
+
+const clients = new Map();
+
+// WebSocket connection handler
+wss.on("connection", (ws) => {
+  console.log("New WebSocket connection");
+
+  let playerId = null;
+
+  ws.on("message", (message) => {
+    try {
+      const data = JSON.parse(message);
+      if (data.type === "register_player" && data.id) {
+        playerId = data.id;
+        clients.set(playerId, ws);
+        console.log(`Player registered with ID: ${playerId}`);
+      }
+    } catch (error) {
+      console.error("Error processing message", error);
+    }
+  });
+
+  ws.on("close", () => {
+    if (playerId) {
+      clients.delete(playerId);
+      console.log(`Client with ID ${playerId} disconnected`);
+    }
+  });
+});
+
+const sendPlayerUpdate = (player) => {
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(
+        JSON.stringify({
+          type: "balance_update",
+          id: player.id,
+          balance: player.balance,
+        })
+      );
+    }
+  });
+};
 
 app.post("/register", (req, res) => {
   const { name, email, password, confirmPassword } = req.body;
@@ -62,12 +114,24 @@ app.post("/login", (req, res) => {
   });
 });
 
+app.get("/initialize-update", (req, res) => {
+  const { id } = req.query;
+
+  const player = players.find((player) => player.id === id);
+
+  if (player) {
+    sendPlayerUpdate(player);
+    return res.status(200).json({ message: "Player balance initialized" });
+  }
+
+  return res.status(404).json({ message: "Player not found" });
+});
+
 app.post("/bet", (req, res) => {
   const { amount } = req.body;
   const authorization = req.headers.authorization;
 
-  if (!authorization)
-    return res.status(401).json({ message: "Invalid token" });
+  if (!authorization) return res.status(401).json({ message: "Invalid token" });
 
   const player = players.find(
     (player) => player.accessToken === authorization.replace("Bearer ", "")
@@ -111,6 +175,8 @@ app.post("/bet", (req, res) => {
     winAmount: isWin ? amount * 2 : null,
   });
 
+  sendPlayerUpdate(player);
+
   res.json({
     transactionId: betTransactionId,
     currency: "EUR",
@@ -123,8 +189,7 @@ app.get("/my-bets", (req, res) => {
   const { id, status, page, limit } = req.query;
   const authorization = req.headers.authorization;
 
-  if (!authorization)
-    return res.status(401).json({ message: "Invalid token" });
+  if (!authorization) return res.status(401).json({ message: "Invalid token" });
 
   if (!page || !limit)
     return res.status(400).json({ message: "Invalid parameters" });
@@ -157,8 +222,7 @@ app.delete("/my-bet/:id", (req, res) => {
   const { id } = req.params;
   const authorization = req.headers.authorization;
 
-  if (!authorization)
-    return res.status(401).json({ message: "Invalid token" });
+  if (!authorization) return res.status(401).json({ message: "Invalid token" });
 
   const player = players.find(
     (player) => player.accessToken === authorization.replace("Bearer ", "")
@@ -197,8 +261,7 @@ app.get("/my-transactions", (req, res) => {
   const { id, type, page, limit } = req.query;
   const authorization = req.headers.authorization;
 
-  if (!authorization)
-    return res.status(401).json({ message: "Invalid token" });
+  if (!authorization) return res.status(401).json({ message: "Invalid token" });
 
   if (!page || !limit)
     return res.status(400).json({ message: "Invalid parameters" });
@@ -247,7 +310,7 @@ app.use(
 );
 
 app.listen(port, () =>
-  console.log(`Listening: http://localhost:${port}! ✨👋🌍`)
+  console.log(`Listening: http://localhost:${port} ! ✨👋🌍`)
 );
 
 /**

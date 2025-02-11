@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    --background: #141414;
+    --foreground: #ededed;
+    --color-primary: #8b5cf6;
+    --color-secondary: #111827;
+    --color-border: #5b21b6;
+  }
+}
+
+/* Light theme */
+html[data-theme="light"] {
+  --background: #d3ebed;
+  --foreground: #171717;
+  --color-primary: #25a69c;
+  --color-secondary: #fff;
+  --color-border: #25a69c;
+}
+
+/* D3EBED */
+/* 25A69C */
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+input {
+  color: #111;
+}

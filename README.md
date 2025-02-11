@@ -30,6 +30,18 @@ This is a RESTful API developed with Express.js that simulates the management of
    npm install
    ```
 
+4. Navigate to the client directory:
+
+   ```bash
+   cd client
+   ```
+
+5. Install frontend dependencies using npm:
+
+   ```bash
+   npm install
+   ```
+
 ## Running the API
 
 1. To run the API in a local environment:
@@ -39,6 +51,14 @@ This is a RESTful API developed with Express.js that simulates the management of
    ```
 
 The server will be available at: http://localhost:3000.
+
+2. Run the frontend in a local environment:
+
+   ```bash
+   npm run dev
+   ```
+
+The frontend will be available at: http://localhost:3001.
 
 ## Swagger Documentation
 
@@ -115,11 +135,56 @@ http://localhost:3000/docs
 
 ## Technologies Used
 
-- Node.js
-- Express.js
-- Faker.js
-- Swagger
+- Backend
+
+  - Node.js
+  - Express.js
+  - Websocket
+  - Faker.js
+  - Swagger
+
+- Frontend
+  - Next.js
+  - React
+  - React Hook Form
+  - React Icons
+  - React Paginate
+  - Zod
+  - Tailwind
+
+## Implemented Features
+
+### Authentication:
+
+- Register and login forms
+- LocalStorage used to save token and userName
+- LocalStorage used for user authentication checks
+
+### State Management & API Handling:
+
+- Integrated WebSocket connection to listen for balance updates from the server.
+- apiService to send requests with jwtToken for reuse in all API calls
+- authService, bettingService, and transactionsService for handling API requests
+
+### Forms & Validation:
+
+- Implemented react-hook-form with zod for validation
+
+### UI & Theming:
+
+- Reusable ThemeSwitch component for toggling between light and dark themes
+- Navbar displaying register/login buttons, userName, and balance view
+- Tailwind CSS used for faster development
+- Betting & Transactions:
+
+### BetForm component for placing bets
+
+- ListView component to toggle between My Bets and My Transactions lists
+- Filter section in ListView to filter by status or type, depending on the active list
+- Predefined color mappings used for status/type coloring
 
 ## Notes
 
 This API is a mock created specifically to assist and simplify the development of front-end testing. Feel free to make any modifications or improvements as needed.
+
+### Big Thanks for interesting homework assignment!
